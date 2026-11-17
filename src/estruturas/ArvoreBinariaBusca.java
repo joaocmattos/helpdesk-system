@@ -5,8 +5,13 @@ import models.Cliente;
 public class ArvoreBinariaBusca {
     private NoABB raiz;
 
-    public void inserir(Cliente cliente) {
+    private int tamanho;
+
+    public boolean inserir(Cliente cliente) {
+        if (cliente == null || buscar(cliente.getCpfCnpj()) != null) return false;
         raiz = inserir(raiz, cliente);
+        tamanho++;
+        return true;
     }
 
     private NoABB inserir(NoABB no, Cliente cliente) {
@@ -33,6 +38,7 @@ public class ArvoreBinariaBusca {
         String chave = Cliente.normalizar(cpfCnpj);
         Cliente[] removido = new Cliente[1];
         raiz = remover(raiz, chave, removido);
+        if (removido[0] != null) tamanho--;
         return removido[0];
     }
 
@@ -74,8 +80,49 @@ public class ArvoreBinariaBusca {
     private void listarEmOrdem(NoABB no) {
         if (no == null) return;
         listarEmOrdem(no.getEsquerda());
-        Cliente c = no.getCliente();
-        System.out.println("  " + c.getNome() + " | CPF/CNPJ: " + c.getCpfCnpj() + " | Plano: " + c.getPlano());
+        imprimir(no.getCliente());
         listarEmOrdem(no.getDireita());
+    }
+
+    public void listarPreOrdem() {
+        if (raiz == null) {
+            System.out.println("  (arvore vazia)");
+            return;
+        }
+        listarPreOrdem(raiz);
+    }
+
+    private void listarPreOrdem(NoABB no) {
+        if (no == null) return;
+        imprimir(no.getCliente());
+        listarPreOrdem(no.getEsquerda());
+        listarPreOrdem(no.getDireita());
+    }
+
+    public void listarPosOrdem() {
+        if (raiz == null) {
+            System.out.println("  (arvore vazia)");
+            return;
+        }
+        listarPosOrdem(raiz);
+    }
+
+    private void listarPosOrdem(NoABB no) {
+        if (no == null) return;
+        listarPosOrdem(no.getEsquerda());
+        listarPosOrdem(no.getDireita());
+        imprimir(no.getCliente());
+    }
+
+    private void imprimir(Cliente c) {
+        System.out.println("  " + c.getNome() + " | CPF/CNPJ: " + c.getCpfCnpj() + " | Plano: " + c.getPlano());
+    }
+
+    public boolean estaVazia() {
+        return raiz == null;
+    }
+
+    public int getTamanho() {
+        return tamanho;
     }
 }

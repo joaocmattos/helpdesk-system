@@ -1,59 +1,175 @@
 package sistema;
 
-import estruturas.ArvoreBinariaBusca;
+import java.util.Scanner;
+
 import models.Cliente;
+import models.Ticket;
 
 public class Main {
+    private static final Scanner entrada = new Scanner(System.in);
+    private static final SistemaHelpDesk sistema = new SistemaHelpDesk();
+
     public static void main(String[] args) {
+        sistema.carregarDadosExemplo();
 
-        ArvoreBinariaBusca abb = new ArvoreBinariaBusca();
+        int opcao;
+        do {
+            exibirMenu();
+            opcao = lerInt("Escolha uma opção: ");
+            System.out.println();
+            executar(opcao);
+        } while (opcao != 0);
 
-        Cliente c1 = new Cliente("500.000.000-01", "Carlos",  "(11) 91111-1111", "Gold");
-        Cliente c2 = new Cliente("300.000.000-02", "Ana",     "(11) 92222-2222", "Silver");
-        Cliente c3 = new Cliente("700.000.000-03", "Bruno",   "(11) 93333-3333", "Gold");
-        Cliente c4 = new Cliente("400.000.000-04", "Diana",   "(11) 94444-4444", "Basic");
-        Cliente c5 = new Cliente("600.000.000-05", "Eduardo", "(11) 95555-5555", "Silver");
-        Cliente c6 = new Cliente("800.000.000-06", "Fernanda","(11) 96666-6666", "Gold");
+        System.out.println("Sistema encerrado.");
+    }
 
-        abb.inserir(c1);
-        abb.inserir(c2);
-        abb.inserir(c3);
-        abb.inserir(c4);
-        abb.inserir(c5);
-        abb.inserir(c6);
+    private static void exibirMenu() {
+        System.out.println();
+        System.out.println("===== HELP DESK =====");
+        System.out.println("--- Clientes ---");
+        System.out.println(" 1 - Cadastrar cliente");
+        System.out.println(" 2 - Buscar cliente");
+        System.out.println(" 3 - Remover cliente");
+        System.out.println(" 4 - Listar clientes (em-ordem)");
+        System.out.println(" 5 - Listar clientes (pré-ordem)");
+        System.out.println(" 6 - Listar clientes (pós-ordem)");
+        System.out.println("--- Tickets ---");
+        System.out.println(" 7 - Abrir ticket");
+        System.out.println(" 8 - Ver fila de espera");
+        System.out.println(" 9 - Atender próximo ticket");
+        System.out.println("10 - Cancelar ticket da fila");
+        System.out.println("11 - Listar tickets em atendimento");
+        System.out.println("12 - Fechar ticket");
+        System.out.println("13 - Listar tickets fechados");
+        System.out.println("--- Interações ---");
+        System.out.println("14 - Registrar interação");
+        System.out.println("15 - Listar interações de um ticket");
+        System.out.println("16 - Remover interação");
+        System.out.println(" 0 - Sair");
+    }
 
-        System.out.println("=== ARVORE ANTES DAS REMOCOES (in-ordem) ===");
-        abb.listarEmOrdem();
+    private static void executar(int opcao) {
+        try {
+            switch (opcao) {
+                case 1 -> cadastrarCliente();
+                case 2 -> buscarCliente();
+                case 3 -> removerCliente();
+                case 4 -> sistema.listarClientesEmOrdem();
+                case 5 -> sistema.listarClientesPreOrdem();
+                case 6 -> sistema.listarClientesPosOrdem();
+                case 7 -> abrirTicket();
+                case 8 -> sistema.listarFila();
+                case 9 -> atenderProximo();
+                case 10 -> cancelarTicket();
+                case 11 -> sistema.listarEmAtendimento();
+                case 12 -> fecharTicket();
+                case 13 -> sistema.listarHistorico();
+                case 14 -> registrarInteracao();
+                case 15 -> sistema.listarInteracoes(lerInt("ID do ticket: "));
+                case 16 -> removerInteracao();
+                case 0 -> { }
+                default -> System.out.println("Opção inválida.");
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
 
-        System.out.println("\n--- Removendo no FOLHA: Diana (400.000.000-04) ---");
-        Cliente removido = abb.remover("400.000.000-04");
-        System.out.println("  Removido: " + (removido != null ? removido.getNome() : "nao encontrado"));
-        abb.listarEmOrdem();
+    private static void cadastrarCliente() {
+        String documento = lerTexto("CPF/CNPJ: ");
+        String nome = lerTexto("Nome: ");
+        String telefone = lerTexto("Telefone: ");
+        String plano = lerTexto("Plano: ");
 
-        System.out.println("\n--- Removendo Eduardo (600.000.000-05) para deixar Bruno com 1 filho ---");
-        removido = abb.remover("600.000.000-05");
-        System.out.println("  Removido: " + (removido != null ? removido.getNome() : "nao encontrado"));
-        abb.listarEmOrdem();
+        if (sistema.cadastrarCliente(documento, nome, telefone, plano)) {
+            System.out.println("Cliente cadastrado com sucesso.");
+        } else {
+            System.out.println("Já existe um cliente com esse CPF/CNPJ.");
+        }
+    }
 
-        System.out.println("\n--- Removendo no com 1 FILHO: Bruno (700.000.000-03) ---");
-        removido = abb.remover("700.000.000-03");
-        System.out.println("  Removido: " + (removido != null ? removido.getNome() : "nao encontrado"));
-        abb.listarEmOrdem();
+    private static void buscarCliente() {
+        Cliente cliente = sistema.buscarCliente(lerTexto("CPF/CNPJ: "));
+        System.out.println(cliente != null ? cliente : "Cliente não encontrado.");
+    }
 
-        System.out.println("\n--- Removendo no com 2 FILHOS: Carlos/raiz (500.000.000-01) ---");
-        removido = abb.remover("500.000.000-01");
-        System.out.println("  Removido: " + (removido != null ? removido.getNome() : "nao encontrado"));
-        abb.listarEmOrdem();
+    private static void removerCliente() {
+        Cliente removido = sistema.removerCliente(lerTexto("CPF/CNPJ: "));
+        if (removido != null) {
+            System.out.println("Cliente removido: " + removido.getNome());
+        } else {
+            System.out.println("Cliente não encontrado.");
+        }
+    }
 
-        System.out.println("\n=== BUSCAS FINAIS ===");
-        Cliente encontrado = abb.buscar("300.000.000-02");
-        System.out.println("Busca por Ana (300.000.000-02): " + (encontrado != null ? encontrado : "nao encontrado"));
+    private static void abrirTicket() {
+        String documento = lerTexto("CPF/CNPJ do cliente: ");
+        String descricao = lerTexto("Descrição do problema: ");
 
-        encontrado = abb.buscar("800.000.000-06");
-        System.out.println("Busca por Fernanda (800.000.000-06): " + (encontrado != null ? encontrado : "nao encontrado"));
+        Ticket ticket = sistema.abrirTicket(documento, descricao);
+        if (ticket != null) {
+            System.out.println("Ticket aberto: " + ticket);
+        } else {
+            System.out.println("Cliente não cadastrado. Cadastre-o antes de abrir o ticket.");
+        }
+    }
 
-        encontrado = abb.buscar("400.000.000-04");
-        System.out.println("Busca por Diana (400.000.000-04): " + (encontrado != null ? encontrado : "nao encontrado"));
+    private static void atenderProximo() {
+        Ticket ticket = sistema.atenderProximo();
+        if (ticket != null) {
+            System.out.println("Atendendo: " + ticket);
+        } else {
+            System.out.println("Não há tickets na fila.");
+        }
+    }
+
+    private static void cancelarTicket() {
+        int id = lerInt("ID do ticket: ");
+        System.out.println(sistema.cancelarTicket(id) ? "Ticket cancelado." : "Ticket não encontrado na fila.");
+    }
+
+    private static void fecharTicket() {
+        int id = lerInt("ID do ticket: ");
+        System.out.println(sistema.fecharTicket(id) ? "Ticket fechado." : "Ticket não está em atendimento.");
+    }
+
+    private static void registrarInteracao() {
+        int id = lerInt("ID do ticket: ");
+        String autor = lerTexto("Autor: ");
+        String mensagem = lerTexto("Mensagem: ");
+
+        if (sistema.registrarInteracao(id, autor, mensagem)) {
+            System.out.println("Interação registrada.");
+        } else {
+            System.out.println("Ticket não encontrado ou já fechado.");
+        }
+    }
+
+    private static void removerInteracao() {
+        int idTicket = lerInt("ID do ticket: ");
+        int idInteracao = lerInt("ID da interação: ");
+
+        if (sistema.removerInteracao(idTicket, idInteracao)) {
+            System.out.println("Interação removida.");
+        } else {
+            System.out.println("Ticket ou interação não encontrados.");
+        }
+    }
+
+    private static String lerTexto(String mensagem) {
+        System.out.print(mensagem);
+        return entrada.nextLine().trim();
+    }
+
+    private static int lerInt(String mensagem) {
+        while (true) {
+            System.out.print(mensagem);
+            String linha = entrada.nextLine().trim();
+            try {
+                return Integer.parseInt(linha);
+            } catch (NumberFormatException e) {
+                System.out.println("Digite um número válido.");
+            }
+        }
     }
 }
-
