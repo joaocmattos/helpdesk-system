@@ -5,7 +5,7 @@ import java.util.Scanner;
 import models.Cliente;
 import models.Ticket;
 
-public class Main {
+public class DemoABB {
     private static final Scanner entrada = new Scanner(System.in);
     private static final SistemaHelpDesk sistema = new SistemaHelpDesk();
 
